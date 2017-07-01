@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <title>Matter Dom Plugin</title>
+        <script src="../../node_modules/matter-js/build/matter.js"></script>
+        <script src="../../build/matter-dom-plugin.js"></script>
+        
+        <style>
+            body{
+                overflow: hidden;
+                margin: 0px;
+                width: 100vw;
+                height: 100vh;
+            }
+            #ceiling{
+                width: 100%;
+                height: 100px;
+            }
+            #left-wall{
+                width: 100px;
+                height: 100%;
+                
+            }
+            #right-wall{
+                width: 100px;
+                height: 100%;
+                
+            }
+            #ground{
+                width: 100%;
+                height: 100px;
+            }
+            #ball{
+                width: 100px;
+                height: 100px;
+            }
+            #ball > div{
+                
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="debug"></div>
+        <div id="ball" matter>
+            <div>
+                <svg width="100%" height="100%" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:1.5;">
+                    <g id="basketball">
+                        <circle id="body" cx="50" cy="50" r="50" style="fill:rgb(255,130,0);"/>
+                        <g id="stripes">
+                            <path d="M0,50L100,50" style="fill:none;stroke:black;stroke-width:5px;"/>
+                            <path d="M50,0L50,100" style="fill:none;stroke:black;stroke-width:5px;"/>
+                            <path d="M16,17C40.654,40.356 39.816,59.254 15.987,82.861" style="fill:none;stroke:black;stroke-width:5px;"/>
+                            <path d="M84,17C57.516,41.115 59.316,60.896 83,84.253" style="fill:none;stroke:black;stroke-width:5px;"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>  
+        </div>
+        <div id="ceiling" matter></div>
+        <div id="left-wall" matter></div>
+        <div id="right-wall" matter></div>
+        <div id="ground" matter></div>
+
+        <script src="./main.js"></script>
+    </body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "name": "matter-dom-plugin",
+  "description": "A plugin to apply matter.js's physics to DOM elements",
+  "version": "0.0.1",
+  "main": "src/matter-dom-plugin.js",
+  "license": "MIT",
+  "homepage": "https://github.com/elopezga/matter-dom-plugin",
+  "author": "Edgar Lopez-Garcia",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/elopezga/matter-dom-plugin.git"
+  },
+  "keywords": [
+    "matter-js",
+    "plugin",
+    "physics",
+    "dom"
+  ],
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --content-base docs/",
+    "test": "mocha test",
+    "lint": "eslint *.js test/*.js",
+    "doc": "markdox *.js -o API.md",
+    "release": "npm version minor -m 'release %s' && npm publish",
+    "release-patch": "npm version patch -m 'release %s' && npm publish",
+    "preversion": "npm run lint && npm run test",
+    "version": "npm run build && npm run doc && git add -A index.js build docs API.md",
+    "postversion": "git push && git push --tags"
+  },
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.22.0",
+    "case": "^1.4.2",
+    "chai": "^3.5.0",
+    "eslint": "^3.14.1",
+    "markdox": "^0.1.10",
+    "matter-js": "^0.12.0",
+    "matter-tools": "^0.10.0",
+    "mocha": "^3.2.0",
+    "replace-in-file": "^2.2.2",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^1.16.3"
+  }
+}
