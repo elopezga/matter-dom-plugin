@@ -1,6 +1,6 @@
 (function(){
     Matter.use('matter-dom-plugin');
-    
+    console.log(Matter);
     var Engine = Matter.Engine;
     var Runner = Matter.Runner;
     var RenderDom = Matter.RenderDom;
@@ -72,10 +72,23 @@
         render: render,
         position: {x: viewCenter.x, y: 200},
         bodyType: 'circle',
-        restitution: 1,
-        friction: 0,
-        frictionStatic: 0,
+        restitution: 0.9,
+        friction: 0.2,
+        frictionStatic: 0.0,
         frictionAir: 0
     });
+
+    // Mouse control
+    var mouse = Mouse.create(document.body);
+    var MouseConstraint = DomMouseConstraint.create(engine,{
+        mouse: mouse,
+        constraint: {
+            stiffness: 0.1,
+            render: {
+                visible: false
+            }
+        }
+    });
+    World.add(world, MouseConstraint);
     
 })();

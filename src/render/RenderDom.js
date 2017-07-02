@@ -113,7 +113,7 @@ module.exports = function(Matter){
                     showShadows: false
             }
         });
-        console.log(debugRender);
+
         Render.run(debugRender);
 
         render.DebugRender = debugRender;

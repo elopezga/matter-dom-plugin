@@ -2,10 +2,12 @@ var DomBodies = {};
 
 module.exports = function(Matter){
     var Body = Matter.Body;
+    var DomBody = Matter.DomBody;
     var Vertices = Matter.Vertices;
     var Common = Matter.Common;
     var World = Matter.World;
     var Bounds = Matter.Bounds;
+    var Vector = Matter.Vector;
 
     DomBodies.create = function(options){
         var bodyType = options.bodyType; // Required
@@ -17,6 +19,8 @@ module.exports = function(Matter){
         delete options.el;
         delete options.render;
         delete options.position;
+
+        options.domRenderer = render;
 
         var worldBody = null
         var domBody = document.querySelector(el);
@@ -47,6 +51,22 @@ module.exports = function(Matter){
         }
 
         if(worldBody){
+            /*
+            var verticesPointsInView = [];
+            worldBody.vertices.forEach(function(vertex){
+                var point = render.mapping.worldToView({
+                    x: vertex.x,
+                    y: vertex.y
+                });
+                var vector = Vector.create(point.x, point.y);
+                verticesPointsInView.push(vector);
+            });
+            var verticesInView = Vertices.create(verticesPointsInView, worldBody);
+
+            worldBody.domBounds = Bounds.create(verticesInView);
+            */
+
+            console.log(worldBody);
             domBody.setAttribute('matter-id', worldBody.id);
             World.add(render.engine.world, [worldBody]);
         }
@@ -69,8 +89,7 @@ module.exports = function(Matter){
                                 chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
-
-        return Body.create(Common.extend({}, block, options));
+        return DomBody.create(Common.extend({}, block, options));
     };
 
     DomBodies.circle = function(x, y, radius, options, maxSides){
@@ -123,7 +142,7 @@ module.exports = function(Matter){
             delete options.chamfer;
         }
 
-        return Body.create(Common.extend({}, polygon, options));
+        return DomBody.create(Common.extend({}, polygon, options));
     }
 
     return DomBodies;

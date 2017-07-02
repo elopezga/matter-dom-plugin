@@ -1,5 +1,5 @@
 /*!
- * matter-dom-plugin 0.0.1 by Edgar Lopez-Garci 2017-06-30
+ * matter-dom-plugin 0.0.1 by Edgar Lopez-Garci 2017-07-02
  * https://github.com/elopezga/matter-dom-plugin
  * License MIT
  */
@@ -12,7 +12,7 @@
 		exports["MatterDomPlugin"] = factory(require("matter-js"));
 	else
 		root["MatterDomPlugin"] = factory(root["Matter"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_5__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -78,7 +78,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "/libs";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -88,14 +88,500 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 
+var DomBody = {};
+
+module.exports = function (Matter) {
+    var Vertices = Matter.Vertices;
+    var Vector = Matter.Vector;
+    var Sleeping = Matter.Sleeping;
+    var Render = Matter.Render;
+    var Common = Matter.Common;
+    var Bounds = Matter.Bounds;
+    var Axes = Matter.Axes;
+    var Body = Matter.Body;
+    var Events = Matter.Events;
+
+    // Extend Body
+    DomBody = Common.clone(Body, true);
+
+    DomBody.create = function (options) {
+        var defaults = {
+            id: Common.nextId(),
+            type: 'body',
+            label: 'Dom Body',
+            parts: [],
+            plugin: {},
+            angle: 0,
+            vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
+            position: { x: 0, y: 0 },
+            force: { x: 0, y: 0 },
+            torque: 0,
+            positionImpulse: { x: 0, y: 0 },
+            constraintImpulse: { x: 0, y: 0, angle: 0 },
+            totalContacts: 0,
+            speed: 0,
+            angularSpeed: 0,
+            velocity: { x: 0, y: 0 },
+            angularVelocity: 0,
+            isSensor: false,
+            isStatic: false,
+            isSleeping: false,
+            motion: 0,
+            sleepThreshold: 60,
+            density: 0.001,
+            restitution: 0,
+            friction: 0.1,
+            frictionStatic: 0.5,
+            frictionAir: 0.01,
+            collisionFilter: {
+                category: 0x0001,
+                mask: 0xFFFFFFFF,
+                group: 0
+            },
+            slop: 0.05,
+            timeScale: 1,
+            render: {
+                visible: true,
+                opacity: 1,
+                sprite: {
+                    xScale: 1,
+                    yScale: 1,
+                    xOffset: 0,
+                    yOffset: 0
+                },
+                lineWidth: 0
+            },
+            domRenderer: null,
+            domBounds: null,
+            domVertices: null
+        };
+
+        var body = Common.extend(defaults, options);
+
+        _initProperties(body, options);
+
+        return body;
+    };
+
+    DomBody.setVertices = function (body, vertices) {
+        // change vertices
+        if (vertices[0].body === body) {
+            body.vertices = vertices;
+        } else {
+            body.vertices = Vertices.create(vertices, body);
+        }
+
+        // update properties
+        body.axes = Axes.fromVertices(body.vertices);
+        body.area = Vertices.area(body.vertices);
+        Body.setMass(body, body.density * body.area);
+
+        // orient vertices around the centre of mass at origin (0, 0)
+        var centre = Vertices.centre(body.vertices);
+        Vertices.translate(body.vertices, centre, -1);
+
+        // update inertia while vertices are at origin (0, 0)
+        Body.setInertia(body, Body._inertiaScale * Vertices.inertia(body.vertices, body.mass));
+
+        // update geometry
+        Vertices.translate(body.vertices, body.position);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+        //Bounds.update(body.domBounds, body.vertices, body.velocity);
+        body.domVertices = generateDomVertices(body);
+        body.domBounds = generateDomBounds(body);
+    };
+
+    DomBody.setPosition = function (body, position) {
+        var delta = Vector.sub(position, body.position);
+        body.positionPrev.x += delta.x;
+        body.positionPrev.y += delta.y;
+
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.position.x += delta.x;
+            part.position.y += delta.y;
+            Vertices.translate(part.vertices, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+            //Bounds.update(part.domBounds, part.vertices, body.velocity);
+            body.domVertices = generateDomVertices(body);
+            body.domBounds = generateDomBounds(body);
+        }
+    };
+
+    DomBody.setAngle = function (body, angle) {
+        var delta = angle - body.angle;
+        body.anglePrev += delta;
+
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+            part.angle += delta;
+            Vertices.rotate(part.vertices, delta, body.position);
+            Axes.rotate(part.axes, delta);
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+            //Bounds.update(part.domBounds, part.vertices, body.velocity);
+            body.domVertices = generateDomVertices(body);
+            body.domBounds = generateDomBounds(body);
+            if (i > 0) {
+                Vector.rotateAbout(part.position, delta, body.position, part.position);
+            }
+        }
+    };
+
+    DomBody.scale = function (body, scaleX, scaleY, point) {
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+
+            // scale vertices
+            Vertices.scale(part.vertices, scaleX, scaleY, body.position);
+
+            // update properties
+            part.axes = Axes.fromVertices(part.vertices);
+
+            if (!body.isStatic) {
+                part.area = Vertices.area(part.vertices);
+                Body.setMass(part, body.density * part.area);
+
+                // update inertia (requires vertices to be at origin)
+                Vertices.translate(part.vertices, { x: -part.position.x, y: -part.position.y });
+                Body.setInertia(part, Vertices.inertia(part.vertices, part.mass));
+                Vertices.translate(part.vertices, { x: part.position.x, y: part.position.y });
+            }
+
+            // update bounds
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+            //Bounds.update(part.domBounds, part.vertices, body.velocity);
+            body.domVertices = generateDomVertices(body);
+            body.domBounds = generateDomBounds(body);
+        }
+
+        // handle circles
+        if (body.circleRadius) {
+            if (scaleX === scaleY) {
+                body.circleRadius *= scaleX;
+            } else {
+                // body is no longer a circle
+                body.circleRadius = null;
+            }
+        }
+
+        if (!body.isStatic) {
+            var total = _totalProperties(body);
+            body.area = total.area;
+            Body.setMass(body, total.mass);
+            Body.setInertia(body, total.inertia);
+        }
+    };
+
+    DomBody.update = function (body, deltaTime, timeScale, correction) {
+        var deltaTimeSquared = Math.pow(deltaTime * timeScale * body.timeScale, 2);
+
+        // from the previous step
+        var frictionAir = 1 - body.frictionAir * timeScale * body.timeScale,
+            velocityPrevX = body.position.x - body.positionPrev.x,
+            velocityPrevY = body.position.y - body.positionPrev.y;
+
+        // update velocity with Verlet integration
+        body.velocity.x = velocityPrevX * frictionAir * correction + body.force.x / body.mass * deltaTimeSquared;
+        body.velocity.y = velocityPrevY * frictionAir * correction + body.force.y / body.mass * deltaTimeSquared;
+
+        body.positionPrev.x = body.position.x;
+        body.positionPrev.y = body.position.y;
+        body.position.x += body.velocity.x;
+        body.position.y += body.velocity.y;
+
+        // update angular velocity with Verlet integration
+        body.angularVelocity = (body.angle - body.anglePrev) * frictionAir * correction + body.torque / body.inertia * deltaTimeSquared;
+        body.anglePrev = body.angle;
+        body.angle += body.angularVelocity;
+
+        // track speed and acceleration
+        body.speed = Vector.magnitude(body.velocity);
+        body.angularSpeed = Math.abs(body.angularVelocity);
+
+        // transform the body geometry
+        for (var i = 0; i < body.parts.length; i++) {
+            var part = body.parts[i];
+
+            Vertices.translate(part.vertices, body.velocity);
+
+            if (i > 0) {
+                part.position.x += body.velocity.x;
+                part.position.y += body.velocity.y;
+            }
+
+            if (body.angularVelocity !== 0) {
+                Vertices.rotate(part.vertices, body.angularVelocity, body.position);
+                Axes.rotate(part.axes, body.angularVelocity);
+                if (i > 0) {
+                    Vector.rotateAbout(part.position, body.angularVelocity, body.position, part.position);
+                }
+            }
+
+            Bounds.update(part.bounds, part.vertices, body.velocity);
+            //Bounds.update(part.domBounds, part.vertices, body.velocity);
+            body.domVertices = generateDomVertices(body);
+            body.domBounds = generateDomBounds(body);
+        }
+    };
+
+    var _initProperties = function _initProperties(body, options) {
+        options = options || {};
+
+        // init required properties (order is important)
+        Body.set(body, {
+            bounds: body.bounds || Bounds.create(body.vertices),
+            positionPrev: body.positionPrev || Vector.clone(body.position),
+            anglePrev: body.anglePrev || body.angle,
+            vertices: body.vertices,
+            parts: body.parts || [body],
+            isStatic: body.isStatic,
+            isSleeping: body.isSleeping,
+            parent: body.parent || body
+        });
+
+        Vertices.rotate(body.vertices, body.angle, body.position);
+        Axes.rotate(body.axes, body.angle);
+        Bounds.update(body.bounds, body.vertices, body.velocity);
+        body.domVertices = generateDomVertices(body);
+        body.domBounds = generateDomBounds(body);
+
+        // allow options to override the automatically calculated properties
+        Body.set(body, {
+            axes: options.axes || body.axes,
+            area: options.area || body.area,
+            mass: options.mass || body.mass,
+            inertia: options.inertia || body.inertia
+        });
+
+        // render properties
+        var defaultFillStyle = body.isStatic ? '#2e2b44' : Common.choose(['#006BA6', '#0496FF', '#FFBC42', '#D81159', '#8F2D56']),
+            defaultStrokeStyle = '#000';
+        body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
+        body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
+        body.render.sprite.xOffset += -(body.bounds.min.x - body.position.x) / (body.bounds.max.x - body.bounds.min.x);
+        body.render.sprite.yOffset += -(body.bounds.min.y - body.position.y) / (body.bounds.max.y - body.bounds.min.y);
+    };
+
+    var generateDomVertices = function generateDomVertices(body) {
+        var pointsInDomView = [];
+        var renderer = body.domRenderer;
+        body.vertices.forEach(function (vertex) {
+            var pointInDomView = renderer.mapping.worldToView({
+                x: vertex.x,
+                y: vertex.y
+            });
+            var vectorInDomView = Vector.create(pointInDomView.x, pointInDomView.y);
+            pointsInDomView.push(vectorInDomView);
+        });
+        var verticesInView = Vertices.create(pointsInDomView, body);
+
+        return verticesInView;
+    };
+
+    var generateDomBounds = function generateDomBounds(body) {
+        var domBounds = Bounds.create(body.domVertices);
+
+        return domBounds;
+    };
+
+    return DomBody;
+};
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var DomMouseConstraint = {};
+
+module.exports = function (Matter) {
+    var Vertices = Matter.Vertices;
+    var Sleeping = Matter.Sleeping;
+    var Mouse = Matter.Mouse;
+    var Events = Matter.Events;
+    var Detector = Matter.Detector;
+    var Constraint = Matter.Constraint;
+    var Composite = Matter.Composite;
+    var Common = Matter.Common;
+    var Bounds = Matter.Bounds;
+
+    DomMouseConstraint.create = function (engine, options) {
+        var mouse = (engine ? engine.mouse : null) || (options ? options.mouse : null);
+
+        if (!mouse) {
+            if (engine && engine.render && engine.render.canvas) {
+                mouse = Mouse.create(engine.render.canvas);
+            } else if (options && options.element) {
+                mouse = Mouse.create(options.element);
+            } else {
+                mouse = Mouse.create();
+                Common.warn('MouseConstraint.create: options.mouse was undefined, options.element was undefined, may not function as expected');
+            }
+        }
+
+        var constraint = Constraint.create({
+            label: 'Mouse Constraint',
+            pointA: mouse.position,
+            pointB: { x: 0, y: 0 },
+            length: 0.01,
+            stiffness: 0.1,
+            angularStiffness: 1,
+            render: {
+                strokeStyle: '#90EE90',
+                lineWidth: 3
+            }
+        });
+
+        var defaults = {
+            type: 'mouseConstraint',
+            mouse: mouse,
+            element: null,
+            body: null,
+            constraint: constraint,
+            collisionFilter: {
+                category: 0x0001,
+                mask: 0xFFFFFFFF,
+                group: 0
+            }
+        };
+
+        var domMouseConstraint = Common.extend(defaults, options);
+
+        Events.on(engine, 'beforeUpdate', function () {
+            var allBodies = Composite.allBodies(engine.world);
+            DomMouseConstraint.update(domMouseConstraint, allBodies);
+            _triggerEvents(domMouseConstraint);
+        });
+
+        return domMouseConstraint;
+    };
+
+    DomMouseConstraint.update = function (mouseConstraint, bodies) {
+        var mouse = mouseConstraint.mouse,
+            constraint = mouseConstraint.constraint,
+            body = mouseConstraint.body;
+
+        var mousePositionInWorld;
+        if (mouse.button === 0) {
+            if (!constraint.bodyB) {
+                var allDomBodies = document.querySelectorAll('[matter]');
+                for (var i = 0; i < bodies.length; i++) {
+                    body = bodies[i];
+
+                    mousePositionInWorld = body.domRenderer.mapping.viewToWorld(mouse.position);
+                    var bodyPositionInView = body.domRenderer.mapping.worldToView(body.position);
+                    if (Bounds.contains(body.bounds, mousePositionInWorld)) {
+                        constraint.pointA = mousePositionInWorld;
+                        constraint.bodyB = mouseConstraint.body = body;
+                        //constraint.pointB = {x: mousePositionInWorld.x - body.position.x, y: mousePositionInWorld.y - body.position.y};
+                        constraint.pointB = { x: 0, y: 0 };
+                        constraint.angleB = body.angle;
+
+                        break;
+                    }
+                }
+            } else {
+
+                Sleeping.set(constraint.bodyB, false);
+                mousePositionInWorld = body.domRenderer.mapping.viewToWorld(mouse.position);
+                constraint.pointA = mousePositionInWorld;
+            }
+        } else {
+            constraint.bodyB = mouseConstraint.body = null;
+            constraint.pointB = null;
+
+            if (body) Events.trigger(mouseConstraint, 'enddrag', { mouse: mouse, body: body });
+        }
+    };
+
+    var _triggerEvents = function _triggerEvents(mouseConstraint) {
+        var mouse = mouseConstraint.mouse,
+            mouseEvents = mouse.sourceEvents;
+
+        if (mouseEvents.mousemove) Events.trigger(mouseConstraint, 'mousemove', { mouse: mouse });
+
+        if (mouseEvents.mousedown) Events.trigger(mouseConstraint, 'mousedown', { mouse: mouse });
+
+        if (mouseEvents.mouseup) Events.trigger(mouseConstraint, 'mouseup', { mouse: mouse });
+
+        // reset the mouse state ready for the next step
+        Mouse.clearSourceEvents(mouse);
+    };
+
+    return DomMouseConstraint;
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = function (Matter) {
+
+    // Patch Engine
+    var World = Matter.World;
+    var Sleeping = Matter.Sleeping;
+    var Resolver = Matter.Resolver;
+    var Render = Matter.Render;
+    var Pairs = Matter.Pair;
+    var Metrics = Matter.Metrics;
+    var Grid = Matter.Grid;
+    var Events = Matter.Events;
+    var Composite = Matter.Composite;
+    var Constraint = Matter.Constraint;
+    var Common = Matter.Common;
+    var Body = Matter.Body;
+    var DomBody = Matter.DomBody;
+    var Engine = Matter.Engine;
+
+    var superUpdate = Engine.update;
+
+    Engine.update = function (engine, delta, correction) {
+        superUpdate(engine, delta, correction);
+
+        delta = delta || 1000 / 60;
+        correction = correction || 1;
+
+        var world = engine.world;
+        var timing = engine.timing;
+        var allBodies = Composite.allBodies(world);
+
+        _bodiesUpdate(allBodies, delta, timing.timeScale, correction, world.bounds);
+        return engine;
+    };
+
+    var _bodiesUpdate = function _bodiesUpdate(bodies, deltaTime, timeScale, correction, worldBounds) {
+        for (var i = 0; i < bodies.length; i++) {
+            var body = bodies[i];
+
+            if (body.isStatic || body.isSleeping) continue;
+
+            DomBody.update(body, deltaTime, timeScale, correction);
+        }
+    };
+};
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 var DomBodies = {};
 
 module.exports = function (Matter) {
     var Body = Matter.Body;
+    var DomBody = Matter.DomBody;
     var Vertices = Matter.Vertices;
     var Common = Matter.Common;
     var World = Matter.World;
     var Bounds = Matter.Bounds;
+    var Vector = Matter.Vector;
 
     DomBodies.create = function (options) {
         var bodyType = options.bodyType; // Required
@@ -107,6 +593,8 @@ module.exports = function (Matter) {
         delete options.el;
         delete options.render;
         delete options.position;
+
+        options.domRenderer = render;
 
         var worldBody = null;
         var domBody = document.querySelector(el);
@@ -126,6 +614,21 @@ module.exports = function (Matter) {
         }
 
         if (worldBody) {
+            /*
+            var verticesPointsInView = [];
+            worldBody.vertices.forEach(function(vertex){
+                var point = render.mapping.worldToView({
+                    x: vertex.x,
+                    y: vertex.y
+                });
+                var vector = Vector.create(point.x, point.y);
+                verticesPointsInView.push(vector);
+            });
+            var verticesInView = Vertices.create(verticesPointsInView, worldBody);
+              worldBody.domBounds = Bounds.create(verticesInView);
+            */
+
+            console.log(worldBody);
             domBody.setAttribute('matter-id', worldBody.id);
             World.add(render.engine.world, [worldBody]);
         }
@@ -147,8 +650,7 @@ module.exports = function (Matter) {
             block.vertices = Vertices.chamfer(block.vertices, chamfer.radius, chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
         }
-
-        return Body.create(Common.extend({}, block, options));
+        return DomBody.create(Common.extend({}, block, options));
     };
 
     DomBodies.circle = function (x, y, radius, options, maxSides) {
@@ -197,14 +699,14 @@ module.exports = function (Matter) {
             delete options.chamfer;
         }
 
-        return Body.create(Common.extend({}, polygon, options));
+        return DomBody.create(Common.extend({}, polygon, options));
     };
 
     return DomBodies;
 };
 
 /***/ }),
-/* 1 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -322,7 +824,7 @@ module.exports = function (Matter) {
                 showShadows: false
             }
         });
-        console.log(debugRender);
+
         Render.run(debugRender);
 
         render.DebugRender = debugRender;
@@ -396,21 +898,24 @@ module.exports = function (Matter) {
 };
 
 /***/ }),
-/* 2 */
+/* 5 */
 /***/ (function(module, exports) {
 
-module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
 
 /***/ }),
-/* 3 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Matter = __webpack_require__(2);
-var RenderDom = __webpack_require__(1);
-var DomBodies = __webpack_require__(0);
+var Matter = __webpack_require__(5);
+var RenderDom = __webpack_require__(4);
+var DomBody = __webpack_require__(0);
+var DomBodies = __webpack_require__(3);
+var DomMouseConstraint = __webpack_require__(1);
+var Engine = __webpack_require__(2);
 
 var MatterDomPlugin = {
     name: 'matter-dom-plugin',
@@ -418,15 +923,30 @@ var MatterDomPlugin = {
     for: 'matter-js@^0.12.0',
     install: function install(matter) {
         MatterDomPlugin.installRenderDom(matter);
-        MatterDomPlugin.installDomBodies(matter);
+        MatterDomPlugin.installDomBody(matter);
+        MatterDomPlugin.installDomBodies(matter); // Depends on DomBody
+        MatterDomPlugin.installDomMouseConstraint(matter);
+        MatterDomPlugin.installEngine(matter);
     },
     installRenderDom: function installRenderDom(matter) {
         console.log("Installing RenderDom module.");
         matter.RenderDom = RenderDom(matter);
     },
     installDomBodies: function installDomBodies(matter) {
-        console.log("Install DomBodies module.");
+        console.log("Installing DomBodies module.");
         matter.DomBodies = DomBodies(matter);
+    },
+    installDomMouseConstraint: function installDomMouseConstraint(matter) {
+        console.log("Installing DomMouseConstraint.");
+        matter.DomMouseConstraint = DomMouseConstraint(matter);
+    },
+    installDomBody: function installDomBody(matter) {
+        console.log("Installing DomBody updates.");
+        matter.DomBody = DomBody(matter);
+    },
+    installEngine: function installEngine(matter) {
+        console.log("Patching Engine.");
+        Engine(matter);
     }
 };
 
