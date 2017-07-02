@@ -1,61 +1,86 @@
-# matter-plugin-boilerplate
+# matter-dom-plugin
 
-> A plugin boilerplate for [matter.js](https://github.com/liabru/matter-js/)
+> A plugin for [matter.js](https://github.com/liabru/matter-js/)
 
-[![Build Status](https://travis-ci.org/liabru/matter-plugin-boilerplate.svg?branch=master)](https://travis-ci.org/liabru/matter-plugin-boilerplate)
-
-This project helps you quickly start a production ready plugin.
-If you just want to build something quickly, check out the [minimal plugin example](https://github.com/liabru/matter-js/wiki/Creating-plugins#example) first.
-
-The wiki articles on [Using plugins](https://github.com/liabru/matter-js/wiki/Using-plugins) 
-and [Creating plugins](https://github.com/liabru/matter-js/wiki/Creating-plugins) 
-contain information on the plugin format and provide some best practices.
-It can also be useful to study the implementation of [existing plugins](https://github.com/liabru/matter-js/wiki/Using-plugins#list-of-plugins).
+This plugin aims to bring dom rendering for the Matterjs physics engine. Objects are created in a html-first declarative way so that
+the application logic and view are seperate.
 
 ## Features
 
-- a simple plugin example (`matter-js`)
-- build, develop and release scripts (`npm run <x>`)
-- a bundler and dev server (`webpack`)
-- an ES6 transpiler (`babel`)
-- a linter (`eslint`)
-- a test suite (`mocha` and `chai`)
-- a documentation generator (`markdox`)
-- a demo runner (`matter-tools`)
-- continuous integration (`travis`)
+- DOM renderer
+- DOM bodies (declarative HTML)
+- Mouse constraint for DOM 
+
+## Install
+
+See matter.js on [using plugins](https://github.com/liabru/matter-js/wiki/Using-plugins)
 
 ## Usage
 
-1. [Import](https://help.github.com/articles/importing-a-repository-with-github-importer/) or manually clone this repository
-1. Update `package.json`
-1. Run `npm install && npm run build`
-1. [Implement]((https://github.com/liabru/matter-js/wiki/Creating-plugins)) your [plugin code](index.js)
-1. Create a [examples](docs/examples/basic.js)
-1. Write [tests](test/test.spec.js)
-1. Document the code
-1. Release your plugin (see [commands](#commands))
-1. Enable [Github Pages](https://help.github.com/articles/configuring-a-publishing-source-for-github-pages/#publishing-your-github-pages-site-from-a-docs-folder-on-your-master-branch) to serve the [demo](https://liabru.github.io/matter-plugin-boilerplate/)
-1. Setup [Travis CI](https://travis-ci.org/) (optional)
-1. Update the readme
+1. Declare physics bodies in scene
 
-### Notes
+```html
+<head>
+  <style>
+    #block{
+      width: 100px;
+      height: 100px;
+      background-color: red;
+    }
+  </style>
+</head>
+<body>
+  <div id="debug"></div>
+  <div id="block" matter></div>
+</body
+```
 
-Running a build will automatically replace strings commented with `PLUGIN_NAME`, `PLUGIN_VERSION` 
-and `PLUGIN_REPO_URL` with constants pulled directly from `package.json`.
-Leave these intact unless you wish to manually keep them up to date.
+2. Initialize Matterjs world
 
-The included plugin is a very basic example that just sets the friction of all bodies to `0` after creation.
-
-If you add more source files, you will need to update the `lint`, `doc` and `version` scripts in `package.json`.
-
-## Commands
-
-All commands are implemented as [npm scripts](https://docs.npmjs.com/misc/scripts):
-
-- `npm run build` - builds the plugin
-- `npm run dev` - runs development server
-- `npm run test` - runs tests
-- `npm run lint` - runs linter
-- `npm run doc` - outputs docs to `API.md`
-- `npm run release` - lint, test, bump minor, build, doc, commit, tag, push, publish (any will stop all on failure)
-- `npm run release-patch` - same as above but patch bump
+```javascript
+  (function(){
+    Matter.use('matter-dom-plugin');
+    
+    /** Aliases **/
+    var Engine = Matter.Engine;
+    var Runner = Matter.Runner;
+    var RenderDom = Matter.RenderDom;
+    var DomBodies = Matter.DomBodies;
+    var MouseConstraint = Matter.MouseConstraint;
+    var DomMouseConstraint = Matter.DomMouseConstraint;
+    var Mouse = Matter.Mouse;
+    
+    /** Set up engine and renderer **/
+    var engine = Engine.create();
+    var world = engine.world;
+    var runner = Runner.create();
+    Runner.run(runner, engine);
+    
+    var render = RenderDom.create({
+      engine: engine
+    });
+    RenderDom.run(render);
+    
+    /** Initialize physics bodies **/
+    var block = DomBodies.create({
+      el: '#block',
+      render: render,
+      position: {x: 100, y: 100},
+      bodyType: 'block'
+    });
+    
+    /** Mouse control **/
+    var mouse = Mouse.create(document.body);
+    var MouseConstraint = DomMouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.1,
+        render: {
+          visible: false
+        }
+      }
+    });
+    
+    World.add(world, MouseConstraint);
+  })();
+```

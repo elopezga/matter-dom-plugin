@@ -12,6 +12,8 @@
     var Events = Matter.Events;
     var World = Matter.World;
     var Vector = Matter.Vector;
+    var Vertices = Matter.Vertices;
+    var Bounds = Matter.Bounds;
 
     var engine = Engine.create();
     var world = engine.world;
@@ -37,6 +39,7 @@
     /**
      * Add components
      */
+    
     
     var ceiling = DomBodies.create({
         el: '#ceiling',
@@ -66,6 +69,7 @@
         bodyType: 'block',
         isStatic: true
     });
+    
 
     var ball = DomBodies.create({
         el: '#ball',
