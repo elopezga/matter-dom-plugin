@@ -18,7 +18,8 @@
   ],
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server --content-base docs/",
+    "dev": "webpack-dev-server --content-base docs/"
+    /*
     "test": "mocha test",
     "lint": "eslint *.js test/*.js",
     "doc": "markdox *.js -o API.md",
@@ -27,6 +28,7 @@
     "preversion": "npm run lint && npm run test",
     "version": "npm run build && npm run doc && git add -A index.js build docs API.md",
     "postversion": "git push && git push --tags"
+    */
   },
   "devDependencies": {
     "babel-core": "^6.22.1",
