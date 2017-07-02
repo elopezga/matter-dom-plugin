@@ -13,6 +13,10 @@ the application logic and view are seperate.
 
 ## Install
 
+```
+    npm install matter-dom-plugin
+```
+
 See matter.js on [using plugins](https://github.com/liabru/matter-js/wiki/Using-plugins)
 
 ## Usage
