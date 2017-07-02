@@ -1,7 +1,7 @@
 {
   "name": "matter-dom-plugin",
   "description": "A plugin to apply matter.js's physics to DOM elements",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "src/matter-dom-plugin.js",
   "license": "MIT",
   "homepage": "https://github.com/elopezga/matter-dom-plugin",
