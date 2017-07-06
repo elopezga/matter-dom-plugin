@@ -82,6 +82,8 @@
         frictionAir: 0
     });
 
+    console.log(ball);
+
     // Mouse control
     var mouse = Mouse.create(document.body);
     var MouseConstraint = DomMouseConstraint.create(engine,{

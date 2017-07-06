@@ -15,58 +15,9 @@ module.exports = function(Matter){
     DomBody = Common.clone(Body, true);
 
     DomBody.create = function(options){
-        var defaults = {
-            id: Common.nextId(),
-            type: 'body',
-            label: 'Dom Body',
-            parts: [],
-            plugin: {},
-            angle: 0,
-            vertices: Vertices.fromPath('L 0 0 L 40 0 L 40 40 L 0 40'),
-            position: { x: 0, y: 0 },
-            force: { x: 0, y: 0 },
-            torque: 0,
-            positionImpulse: { x: 0, y: 0 },
-            constraintImpulse: { x: 0, y: 0, angle: 0 },
-            totalContacts: 0,
-            speed: 0,
-            angularSpeed: 0,
-            velocity: { x: 0, y: 0 },
-            angularVelocity: 0,
-            isSensor: false,
-            isStatic: false,
-            isSleeping: false,
-            motion: 0,
-            sleepThreshold: 60,
-            density: 0.001,
-            restitution: 0,
-            friction: 0.1,
-            frictionStatic: 0.5,
-            frictionAir: 0.01,
-            collisionFilter: {
-                category: 0x0001,
-                mask: 0xFFFFFFFF,
-                group: 0
-            },
-            slop: 0.05,
-            timeScale: 1,
-            render: {
-                visible: true,
-                opacity: 1,
-                sprite: {
-                    xScale: 1,
-                    yScale: 1,
-                    xOffset: 0,
-                    yOffset: 0
-                },
-                lineWidth: 0
-            },
-            domRenderer: null,
-            domBounds: null,
-            domVertices : null
-        };
-
-        var body = Common.extend(defaults, options);
+        var body = Body.create.apply(null, arguments);
+        body.domBounds = null;
+        body.domVertices = null;
 
         _initProperties(body, options);
 
@@ -235,41 +186,8 @@ module.exports = function(Matter){
     };
 
     var _initProperties = function(body, options) {
-        options = options || {};
-
-        // init required properties (order is important)
-        Body.set(body, {
-            bounds: body.bounds || Bounds.create(body.vertices),
-            positionPrev: body.positionPrev || Vector.clone(body.position),
-            anglePrev: body.anglePrev || body.angle,
-            vertices: body.vertices,
-            parts: body.parts || [body],
-            isStatic: body.isStatic,
-            isSleeping: body.isSleeping,
-            parent: body.parent || body
-        });
-
-        Vertices.rotate(body.vertices, body.angle, body.position);
-        Axes.rotate(body.axes, body.angle);
-        Bounds.update(body.bounds, body.vertices, body.velocity);
         body.domVertices = generateDomVertices(body);
         body.domBounds = generateDomBounds(body);
-
-        // allow options to override the automatically calculated properties
-        Body.set(body, {
-            axes: options.axes || body.axes,
-            area: options.area || body.area,
-            mass: options.mass || body.mass,
-            inertia: options.inertia || body.inertia
-        });
-
-        // render properties
-        var defaultFillStyle = (body.isStatic ? '#2e2b44' : Common.choose(['#006BA6', '#0496FF', '#FFBC42', '#D81159', '#8F2D56'])),
-            defaultStrokeStyle = '#000';
-        body.render.fillStyle = body.render.fillStyle || defaultFillStyle;
-        body.render.strokeStyle = body.render.strokeStyle || defaultStrokeStyle;
-        body.render.sprite.xOffset += -(body.bounds.min.x - body.position.x) / (body.bounds.max.x - body.bounds.min.x);
-        body.render.sprite.yOffset += -(body.bounds.min.y - body.position.y) / (body.bounds.max.y - body.bounds.min.y);
     };
 
     var generateDomVertices = function(body){

@@ -7,7 +7,7 @@ var Engine = require('./core/Engine.js');
 
 var MatterDomPlugin = {
     name: 'matter-dom-plugin',
-    version: '0.1.1',
+    version: '0.1.2',
     for: 'matter-js@^0.12.0',
     install: function(matter){
         MatterDomPlugin.installRenderDom(matter);
