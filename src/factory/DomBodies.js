@@ -16,7 +16,7 @@ module.exports = function(Matter){
         var position = options.position; // Required
 
         delete options.bodyType;
-        delete options.el;
+        //delete options.el;
         delete options.render;
         delete options.position;
 
@@ -66,7 +66,6 @@ module.exports = function(Matter){
             worldBody.domBounds = Bounds.create(verticesInView);
             */
 
-            console.log(worldBody);
             domBody.setAttribute('matter-id', worldBody.id);
             World.add(render.engine.world, [worldBody]);
         }
