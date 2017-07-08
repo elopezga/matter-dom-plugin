@@ -75,8 +75,8 @@ module.exports = function(Matter){
                 for(var i=0; i<bodies.length; i++){
                     body = bodies[i];
 
-                    mousePositionInWorld = body.domRenderer.mapping.viewToWorld(mouse.position);
-                    var bodyPositionInView = body.domRenderer.mapping.worldToView(body.position);
+                    mousePositionInWorld = body.Dom.render.mapping.viewToWorld(mouse.position);
+                    var bodyPositionInView = body.Dom.render.mapping.worldToView(body.position);
                     if(Bounds.contains(body.bounds, mousePositionInWorld)){
                         constraint.pointA =  mousePositionInWorld;
                         constraint.bodyB = mouseConstraint.body = body;
@@ -90,7 +90,7 @@ module.exports = function(Matter){
             }else{
 
                 Sleeping.set(constraint.bodyB, false);
-                mousePositionInWorld = body.domRenderer.mapping.viewToWorld(mouse.position);
+                mousePositionInWorld = body.Dom.render.mapping.viewToWorld(mouse.position);
                 constraint.pointA = mousePositionInWorld;
             }
         }else{

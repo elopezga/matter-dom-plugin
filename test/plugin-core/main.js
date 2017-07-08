@@ -1,4 +1,5 @@
 (function(){
+    Matter.use('matter-collision-events');
     Matter.use('matter-dom-plugin');
     console.log(Matter);
     var Engine = Matter.Engine;
@@ -42,6 +43,10 @@
     
     
     var ceiling = DomBodies.create({
+        Dom: {
+            render: render,
+            element: document.querySelector('#ball')
+        },
         el: '#ceiling',
         render: render,
         position: {x: viewCenter.x, y: 0},
@@ -49,6 +54,10 @@
         isStatic: true
     });
     var leftWall = DomBodies.create({
+        Dom: {
+            render: render,
+            element: document.querySelector('#ball')
+        },
         el: '#left-wall',
         render: render,
         position: {x: 0, y: viewCenter.y},
@@ -56,6 +65,10 @@
         isStatic: true
     });
     var rightWall = DomBodies.create({
+        Dom: {
+            render: render,
+            element: document.querySelector('#ball')
+        },
         el: '#right-wall',
         render: render,
         position: {x: viewWidth, y: viewCenter.y},
@@ -63,6 +76,10 @@
         isStatic: true
     });
     var ground = DomBodies.create({
+        Dom: {
+            render: render,
+            element: document.querySelector('#ball')
+        },
         el: '#ground',
         render: render,
         position: {x: viewCenter.x, y: viewHeight},
@@ -72,6 +89,10 @@
     
 
     var ball = DomBodies.create({
+        Dom: {
+            render: render,
+            element: document.querySelector('#ball')
+        },
         el: '#ball',
         render: render,
         position: {x: viewCenter.x, y: 200},
@@ -82,6 +103,8 @@
         frictionAir: 0
     });
 
+
+    console.log("yo wassup");
     console.log(ball);
 
     // Mouse control

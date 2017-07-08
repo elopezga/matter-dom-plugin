@@ -2,6 +2,7 @@ var DomBodies = {};
 
 module.exports = function(Matter){
     var Body = Matter.Body;
+    var Bodies = Matter.Bodies;
     var DomBody = Matter.DomBody;
     var Vertices = Matter.Vertices;
     var Common = Matter.Common;
@@ -21,6 +22,13 @@ module.exports = function(Matter){
         delete options.position;
 
         options.domRenderer = render;
+        console.log(options);
+        /*
+        options.Dom = {
+            render: render,
+            element: null
+        }
+        */
 
         var worldBody = null
         var domBody = document.querySelector(el);
@@ -32,7 +40,7 @@ module.exports = function(Matter){
                 y: domBody.offsetHeight  
             });
             //console.log("One block, please!")
-            worldBody = DomBodies.block(
+            worldBody = DomBodies.OGblock(
                 positionInWorld.x,
                 positionInWorld.y,
                 blockDimensionsInWorld.x,
@@ -51,29 +59,15 @@ module.exports = function(Matter){
         }
 
         if(worldBody){
-            /*
-            var verticesPointsInView = [];
-            worldBody.vertices.forEach(function(vertex){
-                var point = render.mapping.worldToView({
-                    x: vertex.x,
-                    y: vertex.y
-                });
-                var vector = Vector.create(point.x, point.y);
-                verticesPointsInView.push(vector);
-            });
-            var verticesInView = Vertices.create(verticesPointsInView, worldBody);
-
-            worldBody.domBounds = Bounds.create(verticesInView);
-            */
-
-            domBody.setAttribute('matter-id', worldBody.id);
+            // TODO TEST THIS!!
+            //domBody.setAttribute('matter-id', worldBody.id);
             World.add(render.engine.world, [worldBody]);
         }
 
         return worldBody;
     }
 
-    DomBodies.block = function(x, y, width, height, options){
+    DomBodies.OGblock = function(x, y, width, height, options){
         var options = options || {};
 
         var block = {
@@ -89,6 +83,48 @@ module.exports = function(Matter){
             delete options.chamfer;
         }
         return DomBody.create(Common.extend({}, block, options));
+    };
+
+    DomBodies.block = function(x, y, options){
+        var defaults = {
+            Dom: {
+                element: null,
+                render: null
+            }
+        }
+        var options = options || {};
+        options = Common.extend(defaults, options);
+        console.log(options);
+
+        var render = options.Dom.render;
+        var element = options.Dom.element;
+        var positionInWorld = render.mapping.viewToWorld({
+            x: x,
+            y: y
+        });
+
+        var elementDimensionsInWorld = render.mapping.viewToWorld({
+            x: element.offsetWidth,
+            y: element.offsetHeight
+        });
+        
+        var block = {
+            label: 'DOM Block Body',
+            position: {x: positionInWorld.x, y: positionInWorld.y},
+            vertices: Vertices.fromPath('L 0 0 L ' + elementDimensionsInWorld.x + ' 0 L ' + elementDimensionsInWorld.x + ' ' + elementDimensionsInWorld.y + ' L 0 ' + elementDimensionsInWorld.y)
+        };
+
+        if(options.chamfer){
+            var chamfer = option.chamfer;
+            block.vertices = Vertices.chamfer(block.vertices, chamfer.radius,
+                                chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
+            delete options.chamfer;
+        }
+        
+        var body = DomBody.create(Common.extend({}, block, options));
+         //element.setAttribute('matter-id', body.id);
+
+         return body;
     };
 
     DomBodies.circle = function(x, y, radius, options, maxSides){

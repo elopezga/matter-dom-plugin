@@ -7,6 +7,7 @@
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
         <title>Matter Dom Plugin</title>
         <script src="../../node_modules/matter-js/build/matter.js"></script>
+        <script src="../../node_modules/matter-collision-events/build/matter-collision-events.js"></script>
         <script src="../../build/matter-dom-plugin.js"></script>
         
         <style>
@@ -33,6 +34,7 @@
             #ground{
                 width: 100%;
                 height: 200px;
+                background-color: red;
             }
             #ball{
                 width: 100px;
@@ -41,7 +43,6 @@
             #ball > div{
                 
             }
-
         </style>
     </head>
     <body>

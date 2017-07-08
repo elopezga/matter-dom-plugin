@@ -1,0 +1,147 @@
+<html>
+    <head>
+        <title>Matter Composites</title>
+
+        <script src="../../node_modules/matter-js/build/matter.js"></script>
+        <script src="../../node_modules/matter-collision-events/build/matter-collision-events.js"></script>
+        <script src="../../build/matter-dom-plugin.js"></script>
+
+        <style>
+            body{
+                overflow: hidden;
+                margin: 0px;
+            }
+            #ground{
+                width: 100%;
+                height: 100px;
+                background-color: green;
+            }
+            #plus-2{
+                width: 300px;
+                height: 50px;
+                background-color: yellow;
+            }
+            #plus-1{
+                width: 50px;
+                height: 300px;
+                background-color: yellow;
+            }
+            #shitty-ball{
+                width: 100px;
+                height: 100px;
+                background-color: orangered;
+                border-radius: 50%;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="debug"></div>
+        <div id="ground" matter></div>
+        <div id="plus-1" matter></div>
+        <div id="plus-2" matter></div>
+        <div id="shitty-ball" matter></div>
+        <script>
+            (function(){
+                Matter.use('matter-dom-plugin');
+
+                window.ondragstart = function(){return false;}; // Fix ugly drag
+
+                var Engine = Matter.Engine;
+                var Runner = Matter.Runner;
+                var World = Matter.World;
+                var RenderDom = Matter.RenderDom;
+                var DomBodies = Matter.DomBodies;
+
+                var engine = Engine.create();
+                var world = engine.world;
+                var runner = Runner.create();
+                Runner.run(runner, engine);
+
+                var render = RenderDom.create({
+                    engine: engine
+                });
+                RenderDom.run(render);
+
+
+                var worldWidth = render.mapping.WORLD.width;
+                var worldHeight = render.mapping.WORLD.height;
+                var worldCenter = render.mapping.WORLD.center;
+                var viewHeight = render.mapping.VIEW.height;
+                var viewWidth = render.mapping.VIEW.width;
+                var viewCenter = render.mapping.VIEW.center;
+
+
+                var ground = Matter.DomBodies.block(viewCenter.x, viewHeight, {
+                    Dom: {
+                        render: render,
+                        element: document.querySelector('#ground')
+                    },
+                    isStatic: true
+                });
+                var plus1 = Matter.DomBodies.block(viewCenter.x, 200, {
+                    Dom: {
+                        render: render,
+                        element: document.querySelector('#plus-1')
+                    }
+                });
+                var plus2 = Matter.DomBodies.block(viewCenter.x, 200, {
+                    Dom: {
+                        render: render,
+                        element: document.querySelector('#plus-2')
+                    }
+                });
+                
+                var cross = Matter.DomBody.create({
+                    Dom: {
+                        render: render,
+                        element: document.querySelector('#shitty-ball')
+                    },
+                    parts: [plus1, plus2]
+                });
+                
+
+
+                World.add(world, [ground, cross]);
+
+
+                var mouse = Matter.Mouse.create(document.body);
+                var mouseConstraint = Matter.DomMouseConstraint.create(engine, {
+                    mouse: mouse,
+                    constraint: {
+                        stiffness: 0.1,
+                        render: {
+                            visible: false
+                        }
+                    }
+                });
+
+                World.add(world, mouseConstraint);
+
+                /*
+                World.remove(world, tBottom);
+                World.remove(world, tTop);
+
+                
+                var t = Matter.DomBody.create({
+                    el: '#t',
+                    domRenderer: render,
+                    parts: [tBottom, tTop],
+                });
+                
+                World.add(world, t);
+                */
+
+                /*
+                var tBottom = Matter.Bodies.rectangle(40, 50, 100, 20);
+                var tTop = Matter.Bodies.rectangle(100, 50, 20, 100);
+                var t = Matter.Body.create({
+                    parts: [tBottom, tTop]
+                });
+
+                World.add(world, t);
+                */
+
+            })();
+        </script>
+    </body>
+</html>
