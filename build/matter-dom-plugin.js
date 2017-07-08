@@ -107,7 +107,7 @@ module.exports = function (Matter) {
     DomBody.create = function (options) {
         var body = Body.create.apply(null, arguments);
 
-        body.Dom.element.setAttribute('matter-id', body.id);
+        //body.Dom.element.setAttribute('matter-id', body.id);
         return body;
     };
 
@@ -343,7 +343,7 @@ module.exports = function (Matter) {
         delete options.position;
 
         options.domRenderer = render;
-        console.log(options);
+
         /*
         options.Dom = {
             render: render,
@@ -403,7 +403,6 @@ module.exports = function (Matter) {
         };
         var options = options || {};
         options = Common.extend(defaults, options);
-        console.log(options);
 
         var render = options.Dom.render;
         var element = options.Dom.element;
@@ -653,27 +652,50 @@ module.exports = function (Matter) {
             matterBodies = Composite.allBodies(world),
             domBody;
 
-        for (var i = 0; i < bodies.length; i++) {
+        for (var i = 0; i < matterBodies.length; i++) {
+            var matterBody = matterBodies[i];
+
+            for (var k = matterBody.parts.length > 1 ? 1 : 0; k < matterBody.parts.length; k++) {
+                var matterPart = matterBody.parts[k];
+                var domPart = matterPart.Dom.element;
+
+                var bodyWorldPoint = render.mapping.worldToView({ x: matterPart.position.x, y: matterPart.position.y });
+                var bodyViewOffset = { x: domPart.offsetWidth / 2, y: domPart.offsetHeight / 2 };
+                domPart.style.position = "absolute";
+                domPart.style.transform = 'translate(' + (bodyWorldPoint.x - bodyViewOffset.x) + 'px, ' + (bodyWorldPoint.y - bodyViewOffset.y) + 'px)';
+                domPart.style.transform += 'rotate(' + matterBody.angle + 'rad)';
+            }
+        }
+
+        /*
+        for(var i=0; i<bodies.length; i++){
             domBody = bodies[i];
             var matterBody = null;
-
-            for (var j = 0; j < matterBodies.length; j++) {
-                if (domBody.hasAttribute('matter-id') && matterBodies[j].id == domBody.getAttribute('matter-id')) {
+              for(var j=0; j<matterBodies.length; j++){
+                if(domBody.hasAttribute('matter-id') && matterBodies[j].id == domBody.getAttribute('matter-id')){
                     matterBody = matterBodies[j];
                     break;
                 }
             }
-
-            if (!matterBody) {
+              if(!matterBody){
                 continue;
             }
-
-            var bodyWorldPoint = render.mapping.worldToView({ x: matterBody.position.x, y: matterBody.position.y });
-            var bodyViewOffset = { x: domBody.offsetWidth / 2, y: domBody.offsetHeight / 2 };
-            domBody.style.position = "absolute";
-            domBody.style.transform = 'translate(' + (bodyWorldPoint.x - bodyViewOffset.x) + 'px, ' + (bodyWorldPoint.y - bodyViewOffset.y) + 'px)';
-            domBody.style.transform += 'rotate(' + matterBody.angle + 'rad)';
+              // handle compound parts
+            for(var k=(matterBody.parts.length > 1) ? 1 : 0; k<matterBody.parts.length; k++){
+                var matterPart = matterBody.parts[k];
+                var domPart = matterPart.Dom.element;
+                //console.log("~~~Part~~~");
+                //console.log(matterPart);
+                  
+                var bodyWorldPoint = render.mapping.worldToView({x: matterPart.position.x, y: matterPart.position.y});
+                var bodyViewOffset = {x: domPart.offsetWidth/2, y: domPart.offsetHeight/2};
+                domPart.style.position = "absolute";
+                domPart.style.transform = `translate(${bodyWorldPoint.x-bodyViewOffset.x}px, ${bodyWorldPoint.y-bodyViewOffset.y}px)`;
+                domPart.style.transform += `rotate(${matterBody.angle}rad)`;
+                
+            }
         }
+        */
     };
 
     return RenderDom;

@@ -22,7 +22,7 @@ module.exports = function(Matter){
         delete options.position;
 
         options.domRenderer = render;
-        console.log(options);
+
         /*
         options.Dom = {
             render: render,
@@ -94,7 +94,7 @@ module.exports = function(Matter){
         }
         var options = options || {};
         options = Common.extend(defaults, options);
-        console.log(options);
+        
 
         var render = options.Dom.render;
         var element = options.Dom.element;

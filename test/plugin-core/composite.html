@@ -40,6 +40,7 @@
         <div id="plus-1" matter></div>
         <div id="plus-2" matter></div>
         <div id="shitty-ball" matter></div>
+        <div id="cross" matter></div>
         <script>
             (function(){
                 Matter.use('matter-dom-plugin');
@@ -93,10 +94,24 @@
                 
                 var cross = Matter.DomBody.create({
                     Dom: {
+                        render: render
+                    },
+                    parts: [plus1, plus2]
+                });
+
+                var shittyBall = Matter.DomBodies.create({
+                    Dom:{
                         render: render,
                         element: document.querySelector('#shitty-ball')
                     },
-                    parts: [plus1, plus2]
+                    el: '#shitty-ball',
+                    render: render,
+                    position: {x: viewCenter.x, y: 200},
+                    bodyType: 'circle',
+                    restitution: 0.9,
+                    friction: 0.2,
+                    frictionStatic: 0.0,
+                    frictionAir: 0
                 });
                 
 

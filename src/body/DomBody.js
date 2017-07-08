@@ -17,7 +17,7 @@ module.exports = function(Matter){
     DomBody.create = function(options){
         var body = Body.create.apply(null, arguments);
 
-        body.Dom.element.setAttribute('matter-id', body.id);
+        //body.Dom.element.setAttribute('matter-id', body.id);
         return body;
     };
 
