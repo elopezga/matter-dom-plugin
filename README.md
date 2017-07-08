@@ -2,14 +2,14 @@
 
 > A plugin for [matter.js](https://github.com/liabru/matter-js/)
 
-This plugin aims to bring dom rendering for the Matterjs physics engine. Objects are created in a html-first declarative way so that
-the application logic and view are seperate.
+The matter-dom-plugin aims to bring dom rendering for the Matterjs physics engine. Objects are created in a html-first declarative way so that the application logic and view are seperate.
 
 ## Features
 
 - DOM renderer
 - DOM bodies (declarative HTML)
-- Mouse constraint for DOM 
+- Mouse constraint for DOM
+- Dom body composites
 
 ## Install
 
@@ -66,12 +66,13 @@ See matter.js on [using plugins](https://github.com/liabru/matter-js/wiki/Using-
     RenderDom.run(render);
     
     /** Initialize physics bodies **/
-    var block = DomBodies.create({
-      el: '#block',
-      render: render,
-      position: {x: 100, y: 100},
-      bodyType: 'block'
+    var block = DomBodies.block(100, 100, {
+      Dom: {
+        render: render,
+        element: document.querySelector('#block')
+      }
     });
+    World.add(world, block);
     
     /** Mouse control **/
     var mouse = Mouse.create(document.body);
