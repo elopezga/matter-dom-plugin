@@ -36,7 +36,7 @@ See matter.js on [using plugins](https://github.com/liabru/matter-js/wiki/Using-
 <body>
   <div id="debug"></div>
   <div id="block" matter></div>
-</body
+</body>
 ```
 
 2. Initialize Matterjs world
@@ -53,6 +53,7 @@ See matter.js on [using plugins](https://github.com/liabru/matter-js/wiki/Using-
     var MouseConstraint = Matter.MouseConstraint;
     var DomMouseConstraint = Matter.DomMouseConstraint;
     var Mouse = Matter.Mouse;
+    var World = Matter.World;
     
     /** Set up engine and renderer **/
     var engine = Engine.create();
