@@ -115,7 +115,7 @@ module.exports = function(Matter){
         };
 
         if(options.chamfer){
-            var chamfer = option.chamfer;
+            var chamfer = options.chamfer;
             block.vertices = Vertices.chamfer(block.vertices, chamfer.radius,
                                 chamfer.quality, chamfer.qualityMin, chamfer.qualityMax);
             delete options.chamfer;
