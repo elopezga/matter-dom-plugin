@@ -88,35 +88,38 @@ module.exports = function(Matter){
 
 
         var debugElement = document.querySelector('#debug');
-        debugElement.style.position = "absolute";
-        var debugRender = Render.create({
-            element: document.querySelector('#debug'),
-            engine: engine,
-            options: {
-                    width: render.mapping.WORLD.width,
-                    height: render.mapping.WORLD.height,
-                    background: '#fafafa',
-                    wireframeBackground: '#222',
-                    hasBounds: false,
-                    enabled: true,
-                    wireframes: true,
-                    showSleeping: true,
-                    showDebug: false,
-                    showBroadphase: false,
-                    showBounds: false,
-                    showVelocity: false,
-                    showCollisions: false,
-                    showAxes: false,
-                    showPositions: false,
-                    showAngleIndicator: false,
-                    showIds: false,
-                    showShadows: false
-            }
-        });
+        
+        if (debugElement) {
+            debugElement.style.position = "absolute";
+            var debugRender = Render.create({
+                element: document.querySelector('#debug'),
+                engine: engine,
+                options: {
+                        width: render.mapping.WORLD.width,
+                        height: render.mapping.WORLD.height,
+                        background: '#fafafa',
+                        wireframeBackground: '#222',
+                        hasBounds: false,
+                        enabled: true,
+                        wireframes: true,
+                        showSleeping: true,
+                        showDebug: false,
+                        showBroadphase: false,
+                        showBounds: false,
+                        showVelocity: false,
+                        showCollisions: false,
+                        showAxes: false,
+                        showPositions: false,
+                        showAngleIndicator: false,
+                        showIds: false,
+                        showShadows: false
+                }
+            });
 
-        Render.run(debugRender);
+            Render.run(debugRender);
 
-        render.DebugRender = debugRender;
+            render.DebugRender = debugRender;
+        }
 
         return render;
     }
