@@ -83,6 +83,8 @@ module.exports = function(Matter){
                         //constraint.pointB = {x: mousePositionInWorld.x - body.position.x, y: mousePositionInWorld.y - body.position.y};
                         constraint.pointB = {x: 0, y: 0};
                         constraint.angleB = body.angle;
+                        
+                        Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
 
                         break;
                     }   
