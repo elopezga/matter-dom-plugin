@@ -13,8 +13,8 @@ module.exports = function(Matter){
         _requestAnimationFrame = window.requestAnimationFrame || window.webkitRequestAnimationFrame
                                     || window.mozRequestAnimationFrame || window.msRequestAnimationFrame
                                     || function(callback){ window.setTimeout(function(){callback(Common.now())}, 1000 / 60);};
-        
-        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame 
+
+        _cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame
                                     || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame;
     }
 
@@ -88,7 +88,7 @@ module.exports = function(Matter){
 
 
         var debugElement = document.querySelector('#debug');
-        
+
         if (debugElement) {
             debugElement.style.position = "absolute";
             var debugRender = Render.create({
@@ -166,18 +166,24 @@ module.exports = function(Matter){
 
         for(var i=0; i<matterBodies.length; i++){
             var matterBody = matterBodies[i];
-            
+
             for(var k=(matterBody.parts.length > 1) ? 1 : 0; k<matterBody.parts.length; k++){
                 var matterPart = matterBody.parts[k];
-                var domPart = matterPart.Dom.element;
 
-                
-                var bodyWorldPoint = render.mapping.worldToView({x: matterPart.position.x, y: matterPart.position.y});
-                var bodyViewOffset = {x: domPart.offsetWidth/2, y: domPart.offsetHeight/2};
-                domPart.style.position = "absolute";
-                domPart.style.transform = `translate(${bodyWorldPoint.x-bodyViewOffset.x}px, ${bodyWorldPoint.y-bodyViewOffset.y}px)`;
-                domPart.style.transform += `rotate(${matterBody.angle}rad)`;
-                
+
+                if(matterPart.Dom && matterPart.Dom.element) {
+                    var domPart = matterPart.Dom.element;
+
+                    var bodyWorldPoint = render.mapping.worldToView({
+                        x: matterPart.position.x,
+                        y: matterPart.position.y
+                    });
+                    var bodyViewOffset = {x: domPart.offsetWidth / 2, y: domPart.offsetHeight / 2};
+                    domPart.style.position = "absolute";
+                    domPart.style.transform = `translate(${bodyWorldPoint.x - bodyViewOffset.x}px, ${bodyWorldPoint.y - bodyViewOffset.y}px)`;
+                    domPart.style.transform += `rotate(${matterBody.angle}rad)`;
+                }
+
             }
         }
     }
