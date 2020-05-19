@@ -25,11 +25,11 @@ module.exports = function(Matter){
             }
         }
 
-        var constraint = Constraint.create({ 
+        var constraint = Constraint.create({
             label: 'Mouse Constraint',
             pointA: mouse.position,
             pointB: { x: 0, y: 0 },
-            length: 0.01, 
+            length: 0.01,
             stiffness: 0.1,
             angularStiffness: 1,
             render: {
@@ -53,7 +53,7 @@ module.exports = function(Matter){
 
         var domMouseConstraint = Common.extend(defaults, options);
 
-        
+
         Events.on(engine, 'beforeUpdate', function() {
             var allBodies = Composite.allBodies(engine.world);
             DomMouseConstraint.update(domMouseConstraint, allBodies);
@@ -75,19 +75,22 @@ module.exports = function(Matter){
                 for(var i=0; i<bodies.length; i++){
                     body = bodies[i];
 
-                    mousePositionInWorld = body.Dom.render.mapping.viewToWorld(mouse.position);
-                    var bodyPositionInView = body.Dom.render.mapping.worldToView(body.position);
-                    if(Bounds.contains(body.bounds, mousePositionInWorld)){
-                        constraint.pointA =  mousePositionInWorld;
-                        constraint.bodyB = mouseConstraint.body = body;
-                        //constraint.pointB = {x: mousePositionInWorld.x - body.position.x, y: mousePositionInWorld.y - body.position.y};
-                        constraint.pointB = {x: 0, y: 0};
-                        constraint.angleB = body.angle;
-                        
-                        Events.trigger(mouseConstraint, 'startdrag', { mouse: mouse, body: body });
+                    if(body.Dom !== undefined) {
 
-                        break;
-                    }   
+                        mousePositionInWorld = body.Dom.render.mapping.viewToWorld(mouse.position);
+                        var bodyPositionInView = body.Dom.render.mapping.worldToView(body.position);
+                        if (Bounds.contains(body.bounds, mousePositionInWorld)) {
+                            constraint.pointA = mousePositionInWorld;
+                            constraint.bodyB = mouseConstraint.body = body;
+                            //constraint.pointB = {x: mousePositionInWorld.x - body.position.x, y: mousePositionInWorld.y - body.position.y};
+                            constraint.pointB = {x: 0, y: 0};
+                            constraint.angleB = body.angle;
+
+                            Events.trigger(mouseConstraint, 'startdrag', {mouse: mouse, body: body});
+
+                            break;
+                        }
+                    }
                 }
             }else{
 
