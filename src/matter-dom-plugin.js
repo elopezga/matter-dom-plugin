@@ -17,23 +17,23 @@ var MatterDomPlugin = {
         MatterDomPlugin.installEngine(matter);
     },
     installRenderDom: function(matter){
-        console.log("Installing RenderDom module.");
+        // console.log("Installing RenderDom module.");
         matter.RenderDom = RenderDom(matter);
     },
     installDomBodies: function(matter){
-        console.log("Installing DomBodies module.");
+        // console.log("Installing DomBodies module.");
         matter.DomBodies = DomBodies(matter);
     },
     installDomMouseConstraint: function(matter){
-        console.log("Installing DomMouseConstraint.");
+        // console.log("Installing DomMouseConstraint.");
         matter.DomMouseConstraint = DomMouseConstraint(matter);
     },
     installDomBody: function(matter){
-        console.log("Installing DomBody updates.");
+        // console.log("Installing DomBody updates.");
         matter.DomBody = DomBody(matter);
     },
     installEngine: function(matter){
-        console.log("Patching Engine.");
+        // console.log("Patching Engine.");
         Engine(matter);
     }
 };
